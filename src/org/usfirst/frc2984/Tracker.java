@@ -15,17 +15,20 @@ public class Tracker {
 	
     AxisCamera camera;
     CriteriaCollection cc;
-    public int red, blue, green;
+    public int redHigh, redLow, blueHigh, blueLow, greenHigh, greenLow;
 	
-	public Tracker(int redHigh, int greenLow, int blueHigh){
+	public Tracker(){
 		camera = AxisCamera.getInstance();  // get an instance ofthe camera
         cc = new CriteriaCollection();      // create the criteria for the particle filter
         cc.addCriteria(MeasurementType.IMAQ_MT_BOUNDING_RECT_WIDTH, 30, 400, false);
         cc.addCriteria(MeasurementType.IMAQ_MT_BOUNDING_RECT_HEIGHT, 40, 400, false); 
         
-        this.red = redHigh;
-        this.blue = blueHigh;
-        this.green = greenLow;
+        redHigh = 100;
+        blueHigh = 175;
+        greenHigh = 220;
+        redLow = 0;
+        blueLow = 100;
+        greenLow = 150;
 	}
 	
 	public ParticleAnalysisReport track(String file){
@@ -33,7 +36,7 @@ public class Tracker {
 			
 			
             ColorImage image = (file != null ? new RGBImage(file) : camera.getImage());
-            BinaryImage thresholdImage = image.thresholdRGB(0, red, green, 255, 0, blue);   // keep only green objects
+            BinaryImage thresholdImage = image.thresholdRGB(redLow, redHigh, greenLow, greenHigh, blueLow, blueHigh);   // keep only green objects
             BinaryImage bigObjectsImage = thresholdImage.removeSmallObjects(false, 2);  // remove small artifacts
             BinaryImage convexHullImage = bigObjectsImage.convexHull(false);          // fill in occluded rectangles
             BinaryImage filteredImage = convexHullImage.particleFilter(cc);// find filled in rectangles

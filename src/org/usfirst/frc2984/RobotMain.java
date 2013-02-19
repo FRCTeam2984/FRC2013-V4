@@ -52,7 +52,7 @@ public class RobotMain extends SimpleRobot {
         shooterSpeed1 = -.8;
         launchRate = .7;
         
-        //tracker = new Tracker(35, 25, 250);
+        tracker = new Tracker();
         
     }
 
@@ -178,9 +178,10 @@ public class RobotMain extends SimpleRobot {
     
     public void autonomous() {
         while (isAutonomous() && isEnabled()) {
+        	System.out.println("Tracking...");
             ParticleAnalysisReport r = tracker.track(null);
             
-            boolean move = true;
+            boolean move = false;
             
             if(r != null){
             	
@@ -189,9 +190,14 @@ public class RobotMain extends SimpleRobot {
                 	drivetrain.setShooter1(shooterSpeed2);
         			drivetrain.setShooter2(shooterSpeed2);
         			drivetrain.fire(LAUNCH_RATE);
-            	} else if(move) drivetrain.drive(r.center_mass_x_normalized,r.center_mass_x_normalized);
+            	} else if(move){
+            		double turn = .3;
+            		if(r.center_mass_x_normalized < 0)
+            			turn = -turn;
+            		drivetrain.drive(0,turn);
+            	}
             	
-            	System.out.println(r.center_mass_x_normalized);
+            	System.out.println("Center: " + r.center_mass_x_normalized);
             	
             }
             
