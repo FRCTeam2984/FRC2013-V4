@@ -8,11 +8,20 @@
 package org.usfirst.frc2984;
 
 
+import edu.wpi.first.wpilibj.Accelerometer;
+import edu.wpi.first.wpilibj.AnalogChannel;
+import edu.wpi.first.wpilibj.AnalogModule;
+import edu.wpi.first.wpilibj.Counter;
+import edu.wpi.first.wpilibj.Dashboard;
+import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.Encoder;
 import edu.wpi.first.wpilibj.Gyro;
 import edu.wpi.first.wpilibj.Joystick;
+import edu.wpi.first.wpilibj.Relay;
+import edu.wpi.first.wpilibj.Relay.Value;
 import edu.wpi.first.wpilibj.SimpleRobot;
 import edu.wpi.first.wpilibj.Timer;
+import edu.wpi.first.wpilibj.Victor;
 import edu.wpi.first.wpilibj.image.ParticleAnalysisReport;
 
 
@@ -28,9 +37,14 @@ public class RobotMain extends SimpleRobot {
     Drivetrain drivetrain;
     Joystick joystick1;
     Joystick joystick2;
-    Encoder en1;
-    Gyro gyro1;
+    OpticalSensor opt1, opt2, opt3;
+    DigitalInput opt4;
+    Gyro gyro;
+    Accelerometer acc;
     Tracker tracker;
+    Relay camLight;
+    AnalogChannel pot1;
+    boolean lightsOn;
     private final static double JOYSTICK_SENSITIVITY = 1;
     private final static double TRACKING_ERROR = .05;
     private final static double MAX_DRIVE_SPEED = .9;
@@ -41,26 +55,54 @@ public class RobotMain extends SimpleRobot {
     private double shooterSpeed1, shooterSpeed2, launchRate;
     
     public void robotInit(){
-        drivetrain = new Drivetrain();
+        pot1 = new AnalogChannel(1);
+    	camLight = new Relay(1);
         joystick1 = new Joystick(1);
         joystick2 = new Joystick(2);
-        gyro1 = new Gyro(1);
-        en1 = new Encoder(13,14);
-        en1.setDistancePerPulse(.0524);//For 6in diameter wheel
-        en1.start();
+        gyro = new Gyro(2);
+        drivetrain = new Drivetrain(false);
+        
         shooterSpeed2 = -.9;
         shooterSpeed1 = -.8;
         launchRate = .7;
         
-        tracker = new Tracker();
+        opt1 = new OpticalSensor(4);
+        opt2 = new OpticalSensor(5);
+        opt3 = new OpticalSensor(6);
+        //opt4 = new OpticalSensor(7);
+        //opt2 = new DigitalInput(5);
+        //opt3 = new DigitalInput(6);
+        opt4 = new DigitalInput(7);
         
+        opt1.start();
+        opt2.start();
+        opt3.start();
+        //opt4.start();
+        
+        
+        
+        pot1.resetAccumulator();
+        gyro.reset();
+        
+        //tracker = new Tracker();
+        
+        lightsOn = false;
     }
 
     public void operatorControl() {
     	
     	boolean shooting = false;
+    	camLight.set(Value.kOn);
         
         while(isOperatorControl() && isEnabled()){
+        	
+        	System.out.println("Optical 1: " + opt1.getRate() + " 2: " + opt2.getRate() + " 3: " + opt3.getRate() + " 4: " + opt4.get());
+        	
+        	if(joystick1.getRawButton(10))
+        		System.out.println("Potent: " + pot1.getValue());
+        	
+        	if(joystick1.getRawButton(9))
+        		System.out.println("Accelerometer: " + acc.getAcceleration());
             
         	if(joystick2.getRawButton(7)){
         		shooting = !shooting;
@@ -76,6 +118,19 @@ public class RobotMain extends SimpleRobot {
         		}
         		
         		Timer.delay(.5);
+        	}
+        	
+        	//Lights on and off
+        	if(joystick1.getRawButton(1) && joystick1.getRawButton(2)){
+        		if(lightsOn){
+        			camLight.set(Value.kOff);
+        			lightsOn = false;
+        		}
+        		else {
+        			camLight.set(Value.kOn);
+        			lightsOn = true;
+        		}
+        		Timer.delay(2);
         	}
         	
         	//Shooter

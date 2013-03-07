@@ -4,7 +4,9 @@
  */
 package org.usfirst.frc2984;
 
+import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.Jaguar;
+import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.Victor;
 
 /**
@@ -24,8 +26,11 @@ public class Drivetrain {
 	private final long LAUNCHER_TIME = 440;
 	private Victor tilter;
 	private Victor feeder;
+	private boolean firing, timed;
+    public DigitalInput liftLow, liftHigh, launchLimit;
+	
 
-	public Drivetrain() {
+	public Drivetrain(boolean timedFire) {
         shooter1 = new Jaguar(1);
         shooter2 = new Jaguar(2);
         feeder = new Victor(9);
@@ -36,7 +41,11 @@ public class Drivetrain {
         lifter = new Jaguar(8);
         tilter = new Victor(10);
 		firing = false;
-
+		timed = timedFire;
+		
+        liftLow = new DigitalInput(1);
+        liftHigh = new DigitalInput(2);
+        launchLimit = new DigitalInput(3);
 	}
 
 	public void drive(double throttle, double turn) {
@@ -64,10 +73,26 @@ public class Drivetrain {
 		right2.set(right);
 	}
 
-	private boolean firing;
-
 	public void fire(double rate) {
-		feeder.set(rate);
+		if (!timed) {
+			feeder.set(rate);
+		} else {
+			if (firing)
+				return;
+			else
+				firing = true;
+
+			Thread t = new Thread() {
+				public void run() {
+					feeder.set(LAUNCHER_SPEED);
+					Timer.delay(.5);
+					while(!liftLow.get());
+					feeder.set(0);
+					firing = false;
+				}
+			};
+			t.start();
+		}
 	}
 	
 	public void tilt(double rate){
@@ -75,7 +100,9 @@ public class Drivetrain {
 	}
 	
 	public void lift(double rate){
-		lifter.set(rate);
+		if(rate > 0 && !liftHigh.get() || rate < 0 && !liftLow.get() || rate == 0)
+			lifter.set(rate);
+		else lifter.set(0);
 	}
 	
 	
