@@ -4,9 +4,9 @@
  */
 package org.usfirst.frc2984;
 
+import edu.wpi.first.wpilibj.AnalogChannel;
 import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.Jaguar;
-import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.Victor;
 
 /**
@@ -22,12 +22,13 @@ public class Drivetrain {
 	private Jaguar shooter1;
 	private Jaguar shooter2;
 	private Jaguar lifter;
-	private final double LAUNCHER_SPEED = .50;
-	private final long LAUNCHER_TIME = 440;
+	private final double LAUNCHER_SPEED = .60;
 	private Victor tilter;
 	private Victor feeder;
 	private boolean firing, timed;
+	
     public DigitalInput liftLow, liftHigh, launchLimit;
+	public AnalogChannel tiltPot;
 	
 
 	public Drivetrain(boolean timedFire) {
@@ -43,9 +44,11 @@ public class Drivetrain {
 		firing = false;
 		timed = timedFire;
 		
-        liftLow = new DigitalInput(1);
-        liftHigh = new DigitalInput(2);
-        launchLimit = new DigitalInput(3);
+        liftLow = new DigitalInput(Sensors.LIFT_LOW);
+        liftHigh = new DigitalInput(Sensors.LIFT_HIGH);
+        launchLimit = new DigitalInput(Sensors.LAUNCHER_OPTICAL);
+        
+        tiltPot = new AnalogChannel(Sensors.TILT_POTENTIOMETER);
 	}
 
 	public void drive(double throttle, double turn) {
@@ -85,8 +88,7 @@ public class Drivetrain {
 			Thread t = new Thread() {
 				public void run() {
 					feeder.set(LAUNCHER_SPEED);
-					Timer.delay(.5);
-					while(!liftLow.get());
+					while(!launchLimit.get());
 					feeder.set(0);
 					firing = false;
 				}
@@ -97,13 +99,12 @@ public class Drivetrain {
 	
 	public void tilt(double rate){
 		tilter.set(rate);
+		System.out.println(tiltPot.getValue());
 	}
 	
 	public void lift(double rate){
 		if(rate > 0 && !liftHigh.get() || rate < 0 && !liftLow.get() || rate == 0)
 			lifter.set(rate);
 		else lifter.set(0);
-	}
-	
-	
+	}	
 }
