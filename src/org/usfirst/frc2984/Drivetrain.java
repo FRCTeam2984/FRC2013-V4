@@ -77,6 +77,7 @@ public class Drivetrain {
 	}
 
 	public void fire(final double rate) {
+		
 		if (!timed) {
 			feeder.set(rate);
 		} else {
@@ -88,14 +89,19 @@ public class Drivetrain {
 			Thread t = new Thread() {
 				public void run() {
 					feeder.set(rate);
-					Timer.delay(.4);
-					while(!launchLimit.get());
+					Timer.delay(.05);
+					while(!launchLimit.get())
+						System.out.println(launchLimit.get());
 					feeder.set(0);
 					firing = false;
 				}
 			};
 			t.start();
 		}
+	}
+	
+	public void setLauncher(double rate){
+		feeder.set(rate);
 	}
 	
 	public void tilt(double rate){

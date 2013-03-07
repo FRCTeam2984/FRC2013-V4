@@ -51,7 +51,6 @@ public class OpticalSensor extends Counter{
 
 		public void run(){
 			testing = true;
-			long time = System.currentTimeMillis();
 			while(testing){
 				sensor.reset();
 				Timer.delay(.1);

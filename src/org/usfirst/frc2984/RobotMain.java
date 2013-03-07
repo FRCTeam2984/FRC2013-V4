@@ -35,15 +35,15 @@ public class RobotMain extends SimpleRobot {
     Accelerometer acc;
     Tracker tracker;
     Relay camLight, baseLights;
-    boolean lightsOn;
     private final static double JOYSTICK_SENSITIVITY = 1;
     private final static double TRACKING_ERROR = .05;
     private final static double MAX_DRIVE_SPEED = .9;
     private final static double MAX_TURN_SPEED = 1;
     private final static double TILT_RATE = .2;
-    private final static double LAUNCH_RATE = 1;
+    private final static double LAUNCH_RATE = .5;
     private static final double LIFTER_RATE = .8;
     private double shooterSpeed1, shooterSpeed2, launchRate;
+	private boolean tracking;
     
     public void robotInit(){
         
@@ -56,11 +56,11 @@ public class RobotMain extends SimpleRobot {
         joystick2 = new Joystick(2);
         
         gyro = new Gyro(Sensors.GYRO);
-        drivetrain = new Drivetrain(true);
+        drivetrain = new Drivetrain(false);
         
         shooterSpeed2 = -.9;
         shooterSpeed1 = -.8;
-        launchRate = .7;
+        launchRate = LAUNCH_RATE;
         
         lWheel1 = new OpticalSensor(Sensors.SHOOTER_WHEEL_1_OPTICAL);
         lWheel2 = new OpticalSensor(Sensors.SHOOTER_WHEEL_2_OPTICAL);
@@ -70,53 +70,23 @@ public class RobotMain extends SimpleRobot {
         
         gyro.reset();
         
+        //Tacking?
+        tracking = false;
         tracker = new Tracker();
         
-        lightsOn = true;
+    	camLight.set(Value.kOn);
+    	baseLights.set(Value.kOn);
     }
 
     public void operatorControl() {
-    	
-    	boolean shooting = false;
-    	camLight.set(Value.kOn);
-    	baseLights.set(Value.kOn);
+
         
         while(isOperatorControl() && isEnabled()){
         	
+        	System.out.println(drivetrain.launchLimit.get());
+        	
         	//System.out.println("Optical 1: " + opt1.getRate() + " 2: " + opt2.getRate() + " 3: " + opt3.getRate() + " 4: " + opt4.get());
             
-        	//Set constant shooting
-        	if(joystick2.getRawButton(7)){
-        		shooting = !shooting;
-        		
-        		if(shooting){
-        			drivetrain.setShooter1(shooterSpeed1);
-        			drivetrain.setShooter2(shooterSpeed2);
-        		} else {
-
-        			drivetrain.setShooter1(0);
-        			drivetrain.setShooter2(0);
-        			
-        		}
-        		
-        		Timer.delay(.5);
-        	}
-        	
-        	//Lights on and off
-        	if(joystick1.getRawButton(10)){
-        		if(lightsOn){
-        			camLight.set(Value.kOff);
-        			baseLights.set(Value.kOff);
-        			lightsOn = false;
-        		}
-        		else {
-        			camLight.set(Value.kOn);
-        			baseLights.set(Value.kOn);
-        			lightsOn = true;
-        		}
-        		Timer.delay(.5);
-        	}
-        	
         	//Shooter
         	if(joystick2.getRawButton(5)){
                 drivetrain.setShooter1(shooterSpeed1);
@@ -217,7 +187,12 @@ public class RobotMain extends SimpleRobot {
     }
     
     public void autonomous() {
+    	
+    	if(tracking){
+    	
         while (isAutonomous() && isEnabled()) {
+        	
+        	
         	System.out.println("Tracking...");
             ParticleAnalysisReport r = tracker.track(null);
             
@@ -227,7 +202,7 @@ public class RobotMain extends SimpleRobot {
             	
             	if(Math.abs(r.center_mass_x_normalized) < TRACKING_ERROR ){
             		drivetrain.drive(0,0);
-                	drivetrain.setShooter1(shooterSpeed2);
+                	drivetrain.setShooter1(shooterSpeed1);
         			drivetrain.setShooter2(shooterSpeed2);
         			drivetrain.fire(LAUNCH_RATE);
             	} else if(move){
@@ -243,5 +218,17 @@ public class RobotMain extends SimpleRobot {
             
             Timer.delay(.1);
         }
+    	} else {
+        	drivetrain.setShooter1(shooterSpeed1);
+			drivetrain.setShooter2(shooterSpeed2);
+			Timer.delay(3);
+			drivetrain.setLauncher(LAUNCH_RATE);
+			Timer.delay(5);
+			
+        	drivetrain.setShooter1(0.0);
+			drivetrain.setShooter2(0.0);
+			
+			drivetrain.setLauncher(0);
+    	}
     }
 }
