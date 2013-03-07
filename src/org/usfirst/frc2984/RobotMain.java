@@ -47,16 +47,16 @@ public class RobotMain extends SimpleRobot {
     
     public void robotInit(){
         
-    	//Realys
+    	//Relays
     	camLight = new Relay(Sensors.SHOOTER_RELAY);
-    	camLight = new Relay(Sensors.BASE_RELAY);
+    	baseLights = new Relay(Sensors.BASE_RELAY);
     	
     	//Joysticks
         joystick1 = new Joystick(1);
         joystick2 = new Joystick(2);
         
         gyro = new Gyro(Sensors.GYRO);
-        drivetrain = new Drivetrain(false);
+        drivetrain = new Drivetrain(true);
         
         shooterSpeed2 = -.9;
         shooterSpeed1 = -.8;
@@ -72,13 +72,14 @@ public class RobotMain extends SimpleRobot {
         
         tracker = new Tracker();
         
-        lightsOn = false;
+        lightsOn = true;
     }
 
     public void operatorControl() {
     	
     	boolean shooting = false;
     	camLight.set(Value.kOn);
+    	baseLights.set(Value.kOn);
         
         while(isOperatorControl() && isEnabled()){
         	
@@ -102,16 +103,18 @@ public class RobotMain extends SimpleRobot {
         	}
         	
         	//Lights on and off
-        	if(joystick1.getRawButton(1) && joystick1.getRawButton(2)){
+        	if(joystick1.getRawButton(10)){
         		if(lightsOn){
         			camLight.set(Value.kOff);
+        			baseLights.set(Value.kOff);
         			lightsOn = false;
         		}
         		else {
         			camLight.set(Value.kOn);
+        			baseLights.set(Value.kOn);
         			lightsOn = true;
         		}
-        		Timer.delay(2);
+        		Timer.delay(.5);
         	}
         	
         	//Shooter
@@ -136,10 +139,10 @@ public class RobotMain extends SimpleRobot {
             }
         	
         	//Lifter
-        	if(joystick1.getRawButton(4)){
+        	if(joystick1.getRawButton(6)){
                 drivetrain.lift(LIFTER_RATE);
             }
-            else if(joystick1.getRawButton(2)){
+            else if(joystick1.getRawButton(8)){
                 drivetrain.lift(-LIFTER_RATE);
             }
             else{
@@ -184,6 +187,7 @@ public class RobotMain extends SimpleRobot {
             	Timer.delay(.1);
             }
             
+            //Tilt
             if(joystick2.getRawButton(8)){
                 drivetrain.tilt(TILT_RATE);
             }

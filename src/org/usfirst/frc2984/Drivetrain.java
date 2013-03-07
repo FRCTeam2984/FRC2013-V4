@@ -7,11 +7,12 @@ package org.usfirst.frc2984;
 import edu.wpi.first.wpilibj.AnalogChannel;
 import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.Jaguar;
+import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.Victor;
 
 /**
  * 
- * @author jason
+ * @author The Great Francesco
  */
 public class Drivetrain {
 
@@ -22,7 +23,6 @@ public class Drivetrain {
 	private Jaguar shooter1;
 	private Jaguar shooter2;
 	private Jaguar lifter;
-	private final double LAUNCHER_SPEED = .60;
 	private Victor tilter;
 	private Victor feeder;
 	private boolean firing, timed;
@@ -76,7 +76,7 @@ public class Drivetrain {
 		right2.set(right);
 	}
 
-	public void fire(double rate) {
+	public void fire(final double rate) {
 		if (!timed) {
 			feeder.set(rate);
 		} else {
@@ -87,7 +87,8 @@ public class Drivetrain {
 
 			Thread t = new Thread() {
 				public void run() {
-					feeder.set(LAUNCHER_SPEED);
+					feeder.set(rate);
+					Timer.delay(.4);
 					while(!launchLimit.get());
 					feeder.set(0);
 					firing = false;
@@ -98,8 +99,9 @@ public class Drivetrain {
 	}
 	
 	public void tilt(double rate){
-		tilter.set(rate);
-		System.out.println(tiltPot.getValue());
+		if(rate < 0 && tiltPot.getValue() > 300 || rate > 0 && tiltPot.getValue() < 930 || rate == 0)
+			tilter.set(rate);
+		else tilter.set(0);
 	}
 	
 	public void lift(double rate){
