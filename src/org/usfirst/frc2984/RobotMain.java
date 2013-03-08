@@ -12,6 +12,7 @@ import edu.wpi.first.wpilibj.Accelerometer;
 import edu.wpi.first.wpilibj.Gyro;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.Relay;
+import edu.wpi.first.wpilibj.Relay.Direction;
 import edu.wpi.first.wpilibj.Relay.Value;
 import edu.wpi.first.wpilibj.SimpleRobot;
 import edu.wpi.first.wpilibj.Timer;
@@ -50,14 +51,16 @@ public class RobotMain extends SimpleRobot {
         
     	//Relays
     	camLight = new Relay(Sensors.SHOOTER_RELAY);
+    	camLight.setDirection(Direction.kForward);
     	baseLights = new Relay(Sensors.BASE_RELAY);
+    	baseLights.setDirection(Direction.kForward);
     	
     	//Joysticks
         joystick1 = new Joystick(1);
         joystick2 = new Joystick(2);
         
         gyro = new Gyro(Sensors.GYRO);
-        drivetrain = new Drivetrain(true);
+        drivetrain = new Drivetrain();
         
         shooterSpeed2 = -.9;
         shooterSpeed1 = -.8;
@@ -74,13 +77,13 @@ public class RobotMain extends SimpleRobot {
         //Tacking?
         tracking = false;
         tracker = new Tracker();
-        
-    	camLight.set(Value.kOn);
-    	baseLights.set(Value.kOn);
+
     }
 
     public void operatorControl() {
-
+    	
+    	camLight.set(Value.kOn);
+    	baseLights.set(Value.kOn);
         
         while(isOperatorControl() && isEnabled()){
         	
@@ -103,10 +106,10 @@ public class RobotMain extends SimpleRobot {
         	
         	//Launcher
         	if(joystick2.getRawButton(1)){
-                drivetrain.fire(launchRate);
+                drivetrain.fire(launchRate, true);
             }
             else if(joystick2.getRawButton(4)){
-                drivetrain.fire(-launchRate);
+                drivetrain.fire(-launchRate, true);
             }
             /*else{
                 drivetrain.fire(0);
@@ -208,7 +211,7 @@ public class RobotMain extends SimpleRobot {
             		drivetrain.drive(0,0);
                 	drivetrain.setShooter1(shooterSpeed1);
         			drivetrain.setShooter2(shooterSpeed2);
-        			drivetrain.fire(LAUNCH_RATE);
+        			drivetrain.fire(LAUNCH_RATE, true);
             	} else if(move){
             		double turn = .3;
             		if(r.center_mass_x_normalized < 0)
@@ -228,7 +231,7 @@ public class RobotMain extends SimpleRobot {
 			Timer.delay(3);
 			//drivetrain.setLauncher(.4);
 			while (isAutonomous() && isEnabled()) {
-				drivetrain.fire(LAUNCH_RATE);
+				drivetrain.fire(LAUNCH_RATE, true);
 				Timer.delay(2);
 			}
 			

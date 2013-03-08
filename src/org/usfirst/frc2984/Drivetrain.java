@@ -25,7 +25,7 @@ public class Drivetrain {
 	private Jaguar lifter;
 	private Victor tilter;
 	private Victor feeder;
-	private boolean firing, timed;
+	private boolean firing;
 	
     public DigitalInput liftLow, liftHigh, launchLimit;
 	public AnalogChannel tiltPot;
@@ -34,7 +34,7 @@ public class Drivetrain {
 	public final static int TILT_LOW = 300;
 	
 
-	public Drivetrain(boolean timedFire) {
+	public Drivetrain() {
         shooter1 = new Jaguar(1);
         shooter2 = new Jaguar(2);
         feeder = new Victor(9);
@@ -45,7 +45,6 @@ public class Drivetrain {
         lifter = new Jaguar(8);
         tilter = new Victor(10);
 		firing = false;
-		timed = timedFire;
 		
         liftLow = new DigitalInput(Sensors.LIFT_LOW);
         liftHigh = new DigitalInput(Sensors.LIFT_HIGH);
@@ -79,7 +78,7 @@ public class Drivetrain {
 		right2.set(right);
 	}
 
-	public void fire(final double rate) {
+	public void fire(final double rate, boolean timed) {
 		if (!timed) {
 			feeder.set(rate);
 		} else {
@@ -100,10 +99,6 @@ public class Drivetrain {
 			};
 			t.start();
 		}
-	}
-	
-	public void setLauncher(double rate){
-		feeder.set(rate);
 	}
 	
 	public void tilt(double rate){
