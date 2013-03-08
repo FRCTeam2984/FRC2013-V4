@@ -30,6 +30,9 @@ public class Drivetrain {
     public DigitalInput liftLow, liftHigh, launchLimit;
 	public AnalogChannel tiltPot;
 	
+	public final static int TILT_HIGH = 930;
+	public final static int TILT_LOW = 300;
+	
 
 	public Drivetrain(boolean timedFire) {
         shooter1 = new Jaguar(1);
@@ -77,7 +80,6 @@ public class Drivetrain {
 	}
 
 	public void fire(final double rate) {
-		
 		if (!timed) {
 			feeder.set(rate);
 		} else {
@@ -90,9 +92,9 @@ public class Drivetrain {
 				public void run() {
 					feeder.set(rate);
 					Timer.delay(.05);
-					while(!launchLimit.get())
-						System.out.println(launchLimit.get());
+					while(!launchLimit.get());
 					feeder.set(0);
+					Timer.delay(.5);
 					firing = false;
 				}
 			};
@@ -105,7 +107,7 @@ public class Drivetrain {
 	}
 	
 	public void tilt(double rate){
-		if(rate < 0 && tiltPot.getValue() > 300 || rate > 0 && tiltPot.getValue() < 930 || rate == 0)
+		if(rate < 0 && tiltPot.getValue() > TILT_LOW || rate > 0 && tiltPot.getValue() < TILT_HIGH || rate == 0)
 			tilter.set(rate);
 		else tilter.set(0);
 	}
@@ -114,5 +116,17 @@ public class Drivetrain {
 		if(rate > 0 && !liftHigh.get() || rate < 0 && !liftLow.get() || rate == 0)
 			lifter.set(rate);
 		else lifter.set(0);
-	}	
+	}
+	
+	public void moveTilt(final int potVal){
+		if(potVal > TILT_HIGH || potVal < TILT_LOW)
+			return;
+		tilter.set(potVal - tiltPot.getValue() < 0 ? RobotMain.TILT_RATE : -RobotMain.TILT_RATE);
+		new Thread(){
+			public void run(){
+				while(Math.abs(tiltPot.getValue() - potVal) > 5 &&  tiltPot.getValue() < TILT_HIGH && tiltPot.getValue() > TILT_LOW);
+				tilter.set(0);
+			}
+		}.start();
+	}
 }

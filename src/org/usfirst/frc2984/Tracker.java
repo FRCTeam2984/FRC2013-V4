@@ -1,6 +1,5 @@
 package org.usfirst.frc2984;
 
-import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.camera.AxisCamera;
 import edu.wpi.first.wpilibj.camera.AxisCameraException;
 import edu.wpi.first.wpilibj.image.BinaryImage;
@@ -18,7 +17,8 @@ public class Tracker {
     public int redHigh, redLow, blueHigh, blueLow, greenHigh, greenLow;
 	
 	public Tracker(){
-		camera = AxisCamera.getInstance();  // get an instance ofthe camera
+		camera = AxisCamera.getInstance();
+		camera.writeCompression(0);
         cc = new CriteriaCollection();      // create the criteria for the particle filter
         cc.addCriteria(MeasurementType.IMAQ_MT_BOUNDING_RECT_WIDTH, 30, 400, false);
         cc.addCriteria(MeasurementType.IMAQ_MT_BOUNDING_RECT_HEIGHT, 40, 400, false); 

@@ -35,13 +35,14 @@ public class RobotMain extends SimpleRobot {
     Accelerometer acc;
     Tracker tracker;
     Relay camLight, baseLights;
-    private final static double JOYSTICK_SENSITIVITY = 1;
-    private final static double TRACKING_ERROR = .05;
-    private final static double MAX_DRIVE_SPEED = .9;
-    private final static double MAX_TURN_SPEED = 1;
-    private final static double TILT_RATE = .2;
-    private final static double LAUNCH_RATE = .5;
-    private static final double LIFTER_RATE = .8;
+    public final static double JOYSTICK_SENSITIVITY = 1;
+    public final static double TRACKING_ERROR = .05;
+    public final static double MAX_DRIVE_SPEED = .9;
+    public final static double MAX_TURN_SPEED = 1;
+    public final static double TILT_RATE = .2;
+    public final static double LAUNCH_RATE = .5;
+    public static final double LIFTER_RATE = .8;
+    public static final int TILT_BASE = 600;
     private double shooterSpeed1, shooterSpeed2, launchRate;
 	private boolean tracking;
     
@@ -56,7 +57,7 @@ public class RobotMain extends SimpleRobot {
         joystick2 = new Joystick(2);
         
         gyro = new Gyro(Sensors.GYRO);
-        drivetrain = new Drivetrain(false);
+        drivetrain = new Drivetrain(true);
         
         shooterSpeed2 = -.9;
         shooterSpeed1 = -.8;
@@ -83,10 +84,13 @@ public class RobotMain extends SimpleRobot {
         
         while(isOperatorControl() && isEnabled()){
         	
-        	System.out.println(drivetrain.launchLimit.get());
+        	//Set Tilt to Normal
+        	if(joystick2.getRawButton(7)){
+            	drivetrain.moveTilt(TILT_BASE);
+            	System.out.println("Setting tilt to normal");
+            	Timer.delay(.5);
+            }
         	
-        	//System.out.println("Optical 1: " + opt1.getRate() + " 2: " + opt2.getRate() + " 3: " + opt3.getRate() + " 4: " + opt4.get());
-            
         	//Shooter
         	if(joystick2.getRawButton(5)){
                 drivetrain.setShooter1(shooterSpeed1);
@@ -104,9 +108,9 @@ public class RobotMain extends SimpleRobot {
             else if(joystick2.getRawButton(4)){
                 drivetrain.fire(-launchRate);
             }
-            else{
+            /*else{
                 drivetrain.fire(0);
-            }
+            }*/
         	
         	//Lifter
         	if(joystick1.getRawButton(6)){
@@ -222,13 +226,16 @@ public class RobotMain extends SimpleRobot {
         	drivetrain.setShooter1(shooterSpeed1);
 			drivetrain.setShooter2(shooterSpeed2);
 			Timer.delay(3);
-			drivetrain.setLauncher(LAUNCH_RATE);
-			Timer.delay(5);
+			//drivetrain.setLauncher(.4);
+			while (isAutonomous() && isEnabled()) {
+				drivetrain.fire(LAUNCH_RATE);
+				Timer.delay(2);
+			}
 			
-        	drivetrain.setShooter1(0.0);
-			drivetrain.setShooter2(0.0);
+        	//drivetrain.setShooter1(0.0);
+			//drivetrain.setShooter2(0.0);
 			
-			drivetrain.setLauncher(0);
+			//drivetrain.setLauncher(0);
     	}
     }
 }
