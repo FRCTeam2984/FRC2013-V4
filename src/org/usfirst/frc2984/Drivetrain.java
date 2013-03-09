@@ -82,7 +82,7 @@ public class Drivetrain {
 		if (!timed) {
 			feeder.set(rate);
 		} else {
-			if (firing)
+			if (firing || rate == 0)
 				return;
 			else
 				firing = true;
@@ -90,10 +90,10 @@ public class Drivetrain {
 			Thread t = new Thread() {
 				public void run() {
 					feeder.set(rate);
-					Timer.delay(.05);
+					Timer.delay(.18);
 					while(!launchLimit.get());
 					feeder.set(0);
-					Timer.delay(.5);
+					Timer.delay(.6);
 					firing = false;
 				}
 			};
@@ -101,10 +101,14 @@ public class Drivetrain {
 		}
 	}
 	
-	public void tilt(double rate){
-		if(rate < 0 && tiltPot.getValue() > TILT_LOW || rate > 0 && tiltPot.getValue() < TILT_HIGH || rate == 0)
+	public boolean tilt(double rate){
+		if(rate < 0 && tiltPot.getValue() > TILT_LOW || rate > 0 && tiltPot.getValue() < TILT_HIGH || rate == 0){
 			tilter.set(rate);
-		else tilter.set(0);
+			return true;
+		} else {
+			tilter.set(0);
+			return false;
+		}
 	}
 	
 	public void lift(double rate){
@@ -116,11 +120,13 @@ public class Drivetrain {
 	public void moveTilt(final int potVal){
 		if(potVal > TILT_HIGH || potVal < TILT_LOW)
 			return;
-		tilter.set(potVal - tiltPot.getValue() < 0 ? RobotMain.TILT_RATE : -RobotMain.TILT_RATE);
+		final double rate = (potVal - tiltPot.getValue() < 0 ? -RobotMain.TILT_RATE : RobotMain.TILT_RATE);
+		tilt(rate);
 		new Thread(){
 			public void run(){
-				while(Math.abs(tiltPot.getValue() - potVal) > 5 &&  tiltPot.getValue() < TILT_HIGH && tiltPot.getValue() > TILT_LOW);
-				tilter.set(0);
+				while(Math.abs(tiltPot.getValue() - potVal) > 4)
+					tilt(rate);
+				tilt(0);
 			}
 		}.start();
 	}

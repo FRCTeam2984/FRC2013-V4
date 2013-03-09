@@ -76,4 +76,19 @@ public class Tracker {
 		
 		return null;
 	}
+	
+	public void takePic(String fileName){
+		ColorImage i;
+		try {
+			i = camera.getImage();
+			i.write(fileName);
+			i.free();
+		} catch (AxisCameraException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (NIVisionException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
 }
