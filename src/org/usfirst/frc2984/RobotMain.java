@@ -41,7 +41,7 @@ public class RobotMain extends SimpleRobot {
 	public final static double TILT_RATE = .2;
 	public final static double LAUNCH_RATE = .5;
 	public static final double LIFTER_RATE = .98;
-	public static final int TILT_BASE = 482; //526
+	public static final int TILT_BASE = 428; //526
 	private double shooterSpeed1, shooterSpeed2, launchRate;
 	private boolean tracking;
 
@@ -60,8 +60,8 @@ public class RobotMain extends SimpleRobot {
 		gyro = new Gyro(Sensors.GYRO);
 		drivetrain = new Drivetrain();
 
-		shooterSpeed2 = -.70;
-		shooterSpeed1 = .60;
+		shooterSpeed2 = -.75;
+		shooterSpeed1 = .65;
 		launchRate = LAUNCH_RATE;
 
 		lWheel1 = new OpticalSensor(Sensors.SHOOTER_WHEEL_1_OPTICAL);
@@ -84,7 +84,7 @@ public class RobotMain extends SimpleRobot {
 		
 
 		while (isOperatorControl() && isEnabled()) {
-			//System.out.println(drivetrain.launchLimit.get());
+			//System.out.println(drivetrain.tiltPot.getValue());
 
 			// Set Tilt to Normal
 			if (joystick2.getRawButton(7)) {
@@ -218,10 +218,22 @@ public class RobotMain extends SimpleRobot {
 			drivetrain.setShooter1(shooterSpeed1);
 			drivetrain.setShooter2(shooterSpeed2);
 			Timer.delay(3);
-
+			
 			while (isAutonomous() && isEnabled()) {
 				drivetrain.fire(LAUNCH_RATE, true);
 			}
+			
+			/*
+			long time = System.currentTimeMillis();
+			while (System.currentTimeMillis() - time < 5000) {
+				drivetrain.fire(LAUNCH_RATE, true);
+			}
+			
+			drivetrain.drive(-.25,0);
+			Timer.delay(3);
+			drivetrain.drive(0,0
+			);
+			*/
 
 		}
 		try {
