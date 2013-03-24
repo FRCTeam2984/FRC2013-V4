@@ -20,15 +20,15 @@ public class Tracker {
 		camera = AxisCamera.getInstance();
 		camera.writeCompression(0);
         cc = new CriteriaCollection();      // create the criteria for the particle filter
-        cc.addCriteria(MeasurementType.IMAQ_MT_BOUNDING_RECT_WIDTH, 30, 400, false);
-        cc.addCriteria(MeasurementType.IMAQ_MT_BOUNDING_RECT_HEIGHT, 40, 400, false); 
+        //cc.addCriteria(MeasurementType.IMAQ_MT_BOUNDING_RECT_WIDTH, 30, 400, false);
+        //cc.addCriteria(MeasurementType.IMAQ_MT_BOUNDING_RECT_HEIGHT, 40, 400, false); 
         
-        redHigh = 100;
-        blueHigh = 175;
-        greenHigh = 220;
-        redLow = 0;
-        blueLow = 100;
-        greenLow = 150;
+        redHigh = 256;
+        blueHigh = 256;
+        greenHigh = 256;
+        redLow = 215;
+        blueLow = 215;
+        greenLow = 215;
 	}
 	
 	public ParticleAnalysisReport track(String file){

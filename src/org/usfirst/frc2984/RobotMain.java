@@ -127,7 +127,8 @@ public class RobotMain extends SimpleRobot {
 				System.out.println("Launch speed: " + launchRate);
 				Timer.delay(.5);
 			}
-
+			
+			
 			// Launch speed decrease
 			if (joystick2.getRawButton(2)) {
 				if (launchRate > 0) {
@@ -198,9 +199,7 @@ public class RobotMain extends SimpleRobot {
 
 					if (Math.abs(r.center_mass_x_normalized) < TRACKING_ERROR) {
 						drivetrain.drive(0, 0);
-						drivetrain.setShooter1(shooterSpeed1);
-						drivetrain.setShooter2(shooterSpeed2);
-						drivetrain.fire(LAUNCH_RATE, true);
+						break;
 					} else if (move) {
 						double turn = .3;
 						if (r.center_mass_x_normalized < 0)
@@ -214,28 +213,29 @@ public class RobotMain extends SimpleRobot {
 
 				Timer.delay(.1);
 			}
-		} else {
-			drivetrain.setShooter1(shooterSpeed1);
-			drivetrain.setShooter2(shooterSpeed2);
-			Timer.delay(3);
-			
-			while (isAutonomous() && isEnabled()) {
-				drivetrain.fire(LAUNCH_RATE, true);
-			}
-			
-			/*
-			long time = System.currentTimeMillis();
-			while (System.currentTimeMillis() - time < 5000) {
-				drivetrain.fire(LAUNCH_RATE, true);
-			}
-			
-			drivetrain.drive(-.25,0);
-			Timer.delay(3);
-			drivetrain.drive(0,0
-			);
-			*/
-
 		}
+		
+		drivetrain.setShooter1(shooterSpeed1);
+		drivetrain.setShooter2(shooterSpeed2);
+		Timer.delay(3);
+			
+		while (isAutonomous() && isEnabled()) {
+			drivetrain.fire(LAUNCH_RATE, true);
+		}
+			
+		/*
+		long time = System.currentTimeMillis();
+		while (System.currentTimeMillis() - time < 5000) {
+			drivetrain.fire(LAUNCH_RATE, true);
+		}
+		
+		drivetrain.drive(-.25,0);
+		Timer.delay(3);
+		drivetrain.drive(0,0
+		);
+		*/
+
+		
 		try {
 			if(tracker != null) tracker.takePic("pic1.png");
 		} catch (Exception e){
