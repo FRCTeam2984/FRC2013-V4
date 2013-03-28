@@ -8,6 +8,7 @@
 package org.usfirst.frc2984;
 
 import edu.wpi.first.wpilibj.Accelerometer;
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Gyro;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.Relay;
@@ -44,9 +45,13 @@ public class RobotMain extends SimpleRobot {
 	public static final int TILT_BASE = 428; //526
 	private double shooterSpeed1, shooterSpeed2, launchRate;
 	private boolean tracking;
+	Station s;
 
 	public void robotInit() {
-
+		
+		s = new Station();
+		
+		
 		// Relays
 		camLight = new Relay(Sensors.SHOOTER_RELAY);
 		camLight.setDirection(Direction.kForward);
@@ -74,18 +79,18 @@ public class RobotMain extends SimpleRobot {
 
 		// Tacking?
 		tracking = false;
-		tracker = new Tracker();
+		//tracker = new Tracker();
 		camLight.set(Value.kOn);
 		baseLights.set(Value.kOn);
 	}
 
 	public void operatorControl() {
-
 		
-
 		while (isOperatorControl() && isEnabled()) {
 			//System.out.println(drivetrain.tiltPot.getValue());
-
+			s.updateDashboard();
+			//System.out.println(s.printOutput());
+			
 			// Set Tilt to Normal
 			if (joystick2.getRawButton(7)) {
 				drivetrain.moveTilt(TILT_BASE);
