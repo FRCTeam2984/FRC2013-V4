@@ -6,15 +6,16 @@ import edu.wpi.first.wpilibj.DigitalModule;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.IDashboard;
 import edu.wpi.first.wpilibj.Solenoid;
+import edu.wpi.first.wpilibj.networktables.NetworkTableKeyNotDefined;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboardData;
 
 public class Station {
 	
 	DriverStation ds;
-	Dashboard d;
 	
-	public Station(){
+	public Station() throws NetworkTableKeyNotDefined{
 		ds = DriverStation.getInstance();
-		
 	}
 	
 	public String printOutput(){
@@ -26,6 +27,12 @@ public class Station {
 	}
 	
 	public void updateDashboard() {
+		try {
+			System.out.println(SmartDashboard.getBoolean("Checkbox 1"));
+		} catch (NetworkTableKeyNotDefined e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
         Dashboard lowDashData = DriverStation.getInstance().getDashboardPackerLow();
         lowDashData.addCluster();
         {

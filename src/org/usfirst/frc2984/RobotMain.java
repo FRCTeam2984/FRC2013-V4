@@ -17,6 +17,7 @@ import edu.wpi.first.wpilibj.Relay.Value;
 import edu.wpi.first.wpilibj.SimpleRobot;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.image.ParticleAnalysisReport;
+import edu.wpi.first.wpilibj.networktables.NetworkTableKeyNotDefined;
 
 /**
  * The VM is configured to automatically run this class, and to call the
@@ -42,16 +43,20 @@ public class RobotMain extends SimpleRobot {
 	public final static double TILT_RATE = .2;
 	public final static double LAUNCH_RATE = .5;
 	public static final double LIFTER_RATE = .98;
-	public static final int TILT_BASE = 428; //526
+	public static final int TILT_BASE = 428; // 526
 	private double shooterSpeed1, shooterSpeed2, launchRate;
 	private boolean tracking;
 	Station s;
 
 	public void robotInit() {
-		
-		s = new Station();
-		
-		
+
+		try {
+			// s = new Station();
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
 		// Relays
 		camLight = new Relay(Sensors.SHOOTER_RELAY);
 		camLight.setDirection(Direction.kForward);
@@ -79,18 +84,23 @@ public class RobotMain extends SimpleRobot {
 
 		// Tacking?
 		tracking = false;
-		//tracker = new Tracker();
+		tracker = new Tracker();
 		camLight.set(Value.kOn);
 		baseLights.set(Value.kOn);
 	}
 
 	public void operatorControl() {
-		
+
 		while (isOperatorControl() && isEnabled()) {
-			//System.out.println(drivetrain.tiltPot.getValue());
-			s.updateDashboard();
-			//System.out.println(s.printOutput());
-			
+			// System.out.println(drivetrain.tiltPot.getValue());
+			// s.updateDashboard();
+			// System.out.println(s.printOutput());
+
+			// Tracking
+			if (joystick1.getRawButton(1)) {
+				autoTrack();
+			}
+
 			// Set Tilt to Normal
 			if (joystick2.getRawButton(7)) {
 				drivetrain.moveTilt(TILT_BASE);
@@ -98,6 +108,13 @@ public class RobotMain extends SimpleRobot {
 				Timer.delay(.5);
 			}
 
+			// Take Picture
+			if (joystick1.getRawButton(2)) {
+				tracker.takePic("pic2");
+				System.out.println("Taking picture");
+				Timer.delay(.5);
+			}
+			
 			// Shooter
 			if (joystick2.getRawButton(5)) {
 				drivetrain.setShooter1(shooterSpeed1);
@@ -112,8 +129,9 @@ public class RobotMain extends SimpleRobot {
 				drivetrain.fire(launchRate, true);
 			} else if (joystick2.getRawButton(4)) {
 				drivetrain.fire(-launchRate, true);
-			} else{ drivetrain.fire(0, true); }
-			 
+			} else {
+				drivetrain.fire(0, true);
+			}
 
 			// Lifter
 			if (joystick1.getRawButton(6)) {
@@ -132,8 +150,13 @@ public class RobotMain extends SimpleRobot {
 				System.out.println("Launch speed: " + launchRate);
 				Timer.delay(.5);
 			}
-			
-			
+
+			// Toggle AutoCam
+			if (joystick1.getRawButton(10)) {
+				tracker.toggleAutoPicture();
+				Timer.delay(.5);
+			}
+
 			// Launch speed decrease
 			if (joystick2.getRawButton(2)) {
 				if (launchRate > 0) {
@@ -145,22 +168,30 @@ public class RobotMain extends SimpleRobot {
 
 			// Change speed up
 			if (joystick2.getRawButton(10)) {
-				if (shooterSpeed1 > -1.0) {
-					shooterSpeed1 -= .1;
-					shooterSpeed2 -= .1;
+				if (shooterSpeed1 < 1.0) {
+					shooterSpeed1 += .05;
 				}
-				System.out.println("Shooter speed: " + shooterSpeed2);
-				Timer.delay(.1);
+				
+				if (shooterSpeed2 > -1.0) {
+					shooterSpeed2 -= .05;
+				}
+				
+				System.out.println("Shooter speed 1: " + shooterSpeed1 + "  Shooter speed 2: " + shooterSpeed2);
+				Timer.delay(.5);
 			}
 
 			// Change speed down
 			if (joystick2.getRawButton(9)) {
-				if (shooterSpeed1 < 0) {
-					shooterSpeed1 += .1;
-					shooterSpeed2 += .1;
+				if (shooterSpeed1 > 0) {
+					shooterSpeed1 -= .05;
 				}
-				System.out.println("Shooter speed: " + shooterSpeed2);
-				Timer.delay(.1);
+				
+				if (shooterSpeed2 < 0) {
+					shooterSpeed2 += .05;
+				}
+				
+				System.out.println("Shooter speed 1: " + shooterSpeed1 + "  Shooter speed 2: " + shooterSpeed2);
+				Timer.delay(.5);
 			}
 
 			// Tilt
@@ -186,11 +217,14 @@ public class RobotMain extends SimpleRobot {
 	}
 
 	public static double regression(double d) {
-		return JOYSTICK_SENSITIVITY * (d * d * d) + (1 - JOYSTICK_SENSITIVITY) * d;
+		return JOYSTICK_SENSITIVITY * (d * d * d) + (1 - JOYSTICK_SENSITIVITY)
+				* d;
 	}
 
 	public void autonomous() {
+		long start_time = System.currentTimeMillis();
 		drivetrain.moveTilt(TILT_BASE);
+		drivetrain.drive(0, 0);
 		if (tracking) {
 
 			while (isAutonomous() && isEnabled()) {
@@ -219,32 +253,77 @@ public class RobotMain extends SimpleRobot {
 				Timer.delay(.1);
 			}
 		}
-		
+
 		drivetrain.setShooter1(shooterSpeed1);
 		drivetrain.setShooter2(shooterSpeed2);
 		Timer.delay(3);
-			
-		while (isAutonomous() && isEnabled()) {
+		
+		/* while (isAutonomous() && isEnabled()) {
 			drivetrain.fire(LAUNCH_RATE, true);
-		}
-			
-		/*
+		}*/
+		
 		long time = System.currentTimeMillis();
-		while (System.currentTimeMillis() - time < 5000) {
-			drivetrain.fire(LAUNCH_RATE, true);
+		while (System.currentTimeMillis() - time < 6000) {
+				drivetrain.fire(LAUNCH_RATE, true);
 		}
 		
-		drivetrain.drive(-.25,0);
-		Timer.delay(3);
-		drivetrain.drive(0,0
-		);
-		*/
+		drivetrain.setShooter1(0);
+		drivetrain.setShooter2(0);
 
+		/*
+		 * long time = System.currentTimeMillis(); while
+		 * (System.currentTimeMillis() - time < 5000) {
+		 * drivetrain.fire(LAUNCH_RATE, true); }
+		 * 
+		 * drivetrain.drive(-.25,0); Timer.delay(3); drivetrain.drive(0,0 );
+		 */
 		
+		drivetrain.drive(.5, 0);
+		Timer.delay(2.2);
+		drivetrain.drive(0, -.6);
+		Timer.delay(2);
+		drivetrain.drive(0, 0);
+		
+		System.out.println("Took " + (System.currentTimeMillis() - start_time) / 1000.0 + " seconds.");
+		
+		/*
+		 * 
 		try {
-			if(tracker != null) tracker.takePic("pic1.png");
-		} catch (Exception e){
+			if (tracker != null)
+				tracker.takePic("pic1.png");
+			System.out.println("Taking picture");
+		} catch (Exception e) {
 			System.out.println("Picture Failed");
+		}*/
+	}
+
+	public void autoTrack() {
+		
+		System.out.println("Tracking...");
+		
+		while (this.joystick1.getRawButton(1)) {
+			
+			ParticleAnalysisReport r = tracker.track(null);
+
+			if (r != null) {
+
+				if (Math.abs(r.center_mass_x_normalized) < TRACKING_ERROR) {
+					drivetrain.drive(0, 0);
+					System.out.println("DONE!");
+					break;
+				} else {
+					double turn = .3;
+					if (r.center_mass_x_normalized < 0)
+						turn = -turn;
+					drivetrain.drive(0, turn);
+				}
+
+				System.out.println("Center: " + r.center_mass_x_normalized);
+
+			} else 
+				System.out.println("Didnt find anything!");
+
+			Timer.delay(.1);
 		}
 	}
 }

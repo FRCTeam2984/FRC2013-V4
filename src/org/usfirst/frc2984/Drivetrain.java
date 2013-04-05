@@ -40,8 +40,9 @@ public class Drivetrain {
         feeder = new Victor(9);
         left1 = new Jaguar(6);
         left2 = new Jaguar(7);
-        right1 = new Jaguar(4);
-        right2 = new Jaguar(5);
+        right1 = new Jaguar(3);
+        right2 = new Jaguar(4);
+        //Jag 5 is broken
         lifter = new Jaguar(8);
         tilter = new Victor(10);
 		firing = false;
