@@ -29,12 +29,16 @@ public class Drivetrain {
 	
     public DigitalInput liftLow, liftHigh, launchLimit;
 	public AnalogChannel tiltPot;
+	private RobotMain rm;
 	
 	public final static int TILT_HIGH = 930;
 	public final static int TILT_LOW = 300;
 	
 
-	public Drivetrain() {
+	public Drivetrain(RobotMain robotMain) {
+		
+		rm = robotMain;
+		
         shooter1 = new Jaguar(1);
         shooter2 = new Jaguar(2);
         feeder = new Victor(9);
@@ -92,7 +96,8 @@ public class Drivetrain {
 				public void run() {
 					feeder.set(rate);
 					Timer.delay(.18);
-					while(!launchLimit.get());
+					long time = System.currentTimeMillis();
+					while(!launchLimit.get() && System.currentTimeMillis() - time < 2000 && !(rate < 0 ? rm.joystick2.getRawButton(1) : rm.joystick2.getRawButton(4)));
 					feeder.set(0);
 					Timer.delay(.6);
 					firing = false;

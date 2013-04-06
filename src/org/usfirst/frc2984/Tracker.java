@@ -21,6 +21,8 @@ public class Tracker {
 	
 	public Tracker(){
 		camera = AxisCamera.getInstance();
+		camera.writeResolution(ResolutionT.k640x480);
+		camera.writeCompression(0);
         cc = new CriteriaCollection();      // create the criteria for the particle filter
         //cc.addCriteria(MeasurementType, lower, upper, outsideRange)
         cc.addCriteria(MeasurementType.IMAQ_MT_BOUNDING_RECT_WIDTH, 50, 300, false);
@@ -40,7 +42,7 @@ public class Tracker {
 			
             ColorImage image = (file != null ? new RGBImage(file) : camera.getImage());
             BinaryImage thresholdImage = image.thresholdRGB(redLow, redHigh, greenLow, greenHigh, blueLow, blueHigh);   // keep only green objects
-            //thresholdImage.write("thresh");
+            //thresholdImage.write("thresh.bmp");
             BinaryImage bigObjectsImage = thresholdImage.removeSmallObjects(false, 2);  // remove small artifacts
             BinaryImage convexHullImage = bigObjectsImage.convexHull(false);          // fill in occluded rectangles
             BinaryImage filteredImage = convexHullImage.particleFilter(cc);// find filled in rectangles
@@ -74,7 +76,6 @@ public class Tracker {
         } catch (NIVisionException ex) {
             ex.printStackTrace();
         } catch (AxisCameraException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		
@@ -82,7 +83,6 @@ public class Tracker {
 	}
 	
 	public void takePic(String fileName){
-		
 		
 		ColorImage i;
 		try {
@@ -98,6 +98,15 @@ public class Tracker {
 		}
 	}
 	
+	public void takePicThreaded(final String fileName){
+		
+		new Thread(){
+			public void run(){
+				takePic(fileName);
+			}
+		}.start();
+	}
+	
 	
 	public void toggleAutoPicture(){
 		if(ac != null){
@@ -106,7 +115,7 @@ public class Tracker {
 			
 			System.out.println("AutoCam murdered!");
 		}else {
-			ac = new AutomatedCamera(1000);
+			ac = new AutomatedCamera(1);
 			ac.start();
 			System.out.println("AutoCam started!");
 		}
@@ -131,7 +140,7 @@ public class Tracker {
 			while(!stop){
 				
 				System.out.println("Saving pic " + "Automated-" + num + ".png");
-				takePic("Automated-" + num);
+				takePic("Automated-" + num + ".png");
 				num++;
 				Timer.delay(freq);
 			}

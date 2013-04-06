@@ -41,7 +41,7 @@ public class RobotMain extends SimpleRobot {
 	public final static double MAX_DRIVE_SPEED = 1;
 	public final static double MAX_TURN_SPEED = 1;
 	public final static double TILT_RATE = .2;
-	public final static double LAUNCH_RATE = .5;
+	public final static double LAUNCH_RATE = .65;
 	public static final double LIFTER_RATE = .98;
 	public static final int TILT_BASE = 428; // 526
 	private double shooterSpeed1, shooterSpeed2, launchRate;
@@ -53,7 +53,6 @@ public class RobotMain extends SimpleRobot {
 		try {
 			// s = new Station();
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 
@@ -68,7 +67,7 @@ public class RobotMain extends SimpleRobot {
 		joystick2 = new Joystick(2);
 
 		gyro = new Gyro(Sensors.GYRO);
-		drivetrain = new Drivetrain();
+		drivetrain = new Drivetrain(this);
 
 		shooterSpeed2 = -.75;
 		shooterSpeed1 = .65;
@@ -90,28 +89,50 @@ public class RobotMain extends SimpleRobot {
 	}
 
 	public void operatorControl() {
+		
+		int pic_num = 1;
 
 		while (isOperatorControl() && isEnabled()) {
 			// System.out.println(drivetrain.tiltPot.getValue());
 			// s.updateDashboard();
 			// System.out.println(s.printOutput());
 
+			// Joystick 1
+
+			// Take Picture
+			if (joystick1.getRawButton(2)) {
+				tracker.takePicThreaded("TELEOP-" + pic_num + ".png");
+				System.out.println("Taking picture");
+				pic_num++;
+				Timer.delay(.5);
+			}
+			
 			// Tracking
 			if (joystick1.getRawButton(1)) {
 				autoTrack();
 			}
-
+			
+			// Lifter
+			if (joystick1.getRawButton(6)) {
+				drivetrain.lift(LIFTER_RATE);
+			} else if (joystick1.getRawButton(8)) {
+				drivetrain.lift(-LIFTER_RATE);
+			} else {
+				drivetrain.lift(0);
+			}
+			
+			// Toggle AutoCam
+			if (joystick1.getRawButton(10)) {
+				tracker.toggleAutoPicture();
+				Timer.delay(.5);
+			}
+			
+			// Joystick 2
+			
 			// Set Tilt to Normal
 			if (joystick2.getRawButton(7)) {
 				drivetrain.moveTilt(TILT_BASE);
 				System.out.println("Setting tilt to normal");
-				Timer.delay(.5);
-			}
-
-			// Take Picture
-			if (joystick1.getRawButton(2)) {
-				tracker.takePic("pic2");
-				System.out.println("Taking picture");
 				Timer.delay(.5);
 			}
 			
@@ -133,27 +154,12 @@ public class RobotMain extends SimpleRobot {
 				drivetrain.fire(0, true);
 			}
 
-			// Lifter
-			if (joystick1.getRawButton(6)) {
-				drivetrain.lift(LIFTER_RATE);
-			} else if (joystick1.getRawButton(8)) {
-				drivetrain.lift(-LIFTER_RATE);
-			} else {
-				drivetrain.lift(0);
-			}
-
 			// Launch speed increase
 			if (joystick2.getRawButton(3)) {
 				if (launchRate < 1.0) {
 					launchRate += .05;
 				}
 				System.out.println("Launch speed: " + launchRate);
-				Timer.delay(.5);
-			}
-
-			// Toggle AutoCam
-			if (joystick1.getRawButton(10)) {
-				tracker.toggleAutoPicture();
 				Timer.delay(.5);
 			}
 
@@ -211,7 +217,7 @@ public class RobotMain extends SimpleRobot {
 				turn = MAX_TURN_SPEED;
 
 			drivetrain.drive(forward, turn);
-
+			
 			Timer.delay(.01);
 		}
 	}
@@ -256,6 +262,10 @@ public class RobotMain extends SimpleRobot {
 
 		drivetrain.setShooter1(shooterSpeed1);
 		drivetrain.setShooter2(shooterSpeed2);
+		if (tracker != null){
+			tracker.takePicThreaded("AUTO-pic1.png");
+			System.out.println("Taking picture");
+		}
 		Timer.delay(3);
 		
 		/* while (isAutonomous() && isEnabled()) {
