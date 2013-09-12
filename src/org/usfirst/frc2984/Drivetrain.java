@@ -31,8 +31,8 @@ public class Drivetrain {
 	public AnalogChannel tiltPot;
 	private RobotMain rm;
 	
-	public final static int TILT_HIGH = 930;
-	public final static int TILT_LOW = 300;
+	public final static int TILT_HIGH = 900;
+	public final static int TILT_LOW = 500;
 	
 
 	public Drivetrain(RobotMain robotMain) {
@@ -99,7 +99,7 @@ public class Drivetrain {
 					long time = System.currentTimeMillis();
 					while(!launchLimit.get() && System.currentTimeMillis() - time < 2000 && !(rate < 0 ? rm.joystick2.getRawButton(1) : rm.joystick2.getRawButton(4)));
 					feeder.set(0);
-					Timer.delay(.6);
+					Timer.delay(.85);
 					firing = false;
 				}
 			};
@@ -115,6 +115,13 @@ public class Drivetrain {
 			tilter.set(0);
 			return false;
 		}
+	}
+	
+	public void tiltOnce(int amt){
+		int curr = tiltPot.getValue();
+		tilter.set(.05);
+		while(curr + amt != tiltPot.getValue());
+		tilter.set(0);
 	}
 	
 	public void lift(double rate){

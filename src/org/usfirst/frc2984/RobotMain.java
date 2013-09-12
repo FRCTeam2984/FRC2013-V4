@@ -8,7 +8,6 @@
 package org.usfirst.frc2984;
 
 import edu.wpi.first.wpilibj.Accelerometer;
-import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Gyro;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.Relay;
@@ -17,6 +16,7 @@ import edu.wpi.first.wpilibj.Relay.Value;
 import edu.wpi.first.wpilibj.SimpleRobot;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.image.ParticleAnalysisReport;
+import edu.wpi.first.wpilibj.networktables.NetworkTable;
 import edu.wpi.first.wpilibj.networktables.NetworkTableKeyNotDefined;
 
 /**
@@ -40,13 +40,15 @@ public class RobotMain extends SimpleRobot {
 	public final static double TRACKING_ERROR = .05;
 	public final static double MAX_DRIVE_SPEED = 1;
 	public final static double MAX_TURN_SPEED = 1;
-	public final static double TILT_RATE = .2;
+	public final static double TILT_RATE = .1;
 	public final static double LAUNCH_RATE = .65;
 	public static final double LIFTER_RATE = .98;
-	public static final int TILT_BASE = 428; // 526
+	public static final int TILT_BASE = 770; // 526
 	private double shooterSpeed1, shooterSpeed2, launchRate;
 	private boolean tracking;
 	Station s;
+	NetworkTable test;
+	private int pic_num;
 
 	public void robotInit() {
 
@@ -65,6 +67,10 @@ public class RobotMain extends SimpleRobot {
 		// Joysticks
 		joystick1 = new Joystick(1);
 		joystick2 = new Joystick(2);
+
+		// DriverStation.getInstance().getTeamNumber()
+		// test = NetworkTable.getTable("tester");
+		// test.putInt("x", -1);
 
 		gyro = new Gyro(Sensors.GYRO);
 		drivetrain = new Drivetrain(this);
@@ -86,129 +92,28 @@ public class RobotMain extends SimpleRobot {
 		tracker = new Tracker();
 		camLight.set(Value.kOn);
 		baseLights.set(Value.kOn);
+		pic_num = 1;
 	}
 
 	public void operatorControl() {
-		
-		int pic_num = 1;
 
+		
 		while (isOperatorControl() && isEnabled()) {
 			// System.out.println(drivetrain.tiltPot.getValue());
 			// s.updateDashboard();
 			// System.out.println(s.printOutput());
 
+			/*
+			 * try { System.out.println(test.getInt("x")); } catch
+			 * (NetworkTableKeyNotDefined e) { // TODO Auto-generated catch
+			 * block e.printStackTrace(); }
+			 */
+
 			// Joystick 1
 
-			// Take Picture
-			if (joystick1.getRawButton(2)) {
-				tracker.takePicThreaded("TELEOP-" + pic_num + ".png");
-				System.out.println("Taking picture");
-				pic_num++;
-				Timer.delay(.5);
-			}
+			//dualJoystickControl();
+			singleJoystickControl();
 			
-			// Tracking
-			if (joystick1.getRawButton(1)) {
-				autoTrack();
-			}
-			
-			// Lifter
-			if (joystick1.getRawButton(6)) {
-				drivetrain.lift(LIFTER_RATE);
-			} else if (joystick1.getRawButton(8)) {
-				drivetrain.lift(-LIFTER_RATE);
-			} else {
-				drivetrain.lift(0);
-			}
-			
-			// Toggle AutoCam
-			if (joystick1.getRawButton(10)) {
-				tracker.toggleAutoPicture();
-				Timer.delay(.5);
-			}
-			
-			// Joystick 2
-			
-			// Set Tilt to Normal
-			if (joystick2.getRawButton(7)) {
-				drivetrain.moveTilt(TILT_BASE);
-				System.out.println("Setting tilt to normal");
-				Timer.delay(.5);
-			}
-			
-			// Shooter
-			if (joystick2.getRawButton(5)) {
-				drivetrain.setShooter1(shooterSpeed1);
-				drivetrain.setShooter2(shooterSpeed2);
-			} else {
-				drivetrain.setShooter1(0.0);
-				drivetrain.setShooter2(0.0);
-			}
-
-			// Launcher
-			if (joystick2.getRawButton(1)) {
-				drivetrain.fire(launchRate, true);
-			} else if (joystick2.getRawButton(4)) {
-				drivetrain.fire(-launchRate, true);
-			} else {
-				drivetrain.fire(0, true);
-			}
-
-			// Launch speed increase
-			if (joystick2.getRawButton(3)) {
-				if (launchRate < 1.0) {
-					launchRate += .05;
-				}
-				System.out.println("Launch speed: " + launchRate);
-				Timer.delay(.5);
-			}
-
-			// Launch speed decrease
-			if (joystick2.getRawButton(2)) {
-				if (launchRate > 0) {
-					launchRate -= .05;
-				}
-				System.out.println("Launch speed: " + launchRate);
-				Timer.delay(.5);
-			}
-
-			// Change speed up
-			if (joystick2.getRawButton(10)) {
-				if (shooterSpeed1 < 1.0) {
-					shooterSpeed1 += .05;
-				}
-				
-				if (shooterSpeed2 > -1.0) {
-					shooterSpeed2 -= .05;
-				}
-				
-				System.out.println("Shooter speed 1: " + shooterSpeed1 + "  Shooter speed 2: " + shooterSpeed2);
-				Timer.delay(.5);
-			}
-
-			// Change speed down
-			if (joystick2.getRawButton(9)) {
-				if (shooterSpeed1 > 0) {
-					shooterSpeed1 -= .05;
-				}
-				
-				if (shooterSpeed2 < 0) {
-					shooterSpeed2 += .05;
-				}
-				
-				System.out.println("Shooter speed 1: " + shooterSpeed1 + "  Shooter speed 2: " + shooterSpeed2);
-				Timer.delay(.5);
-			}
-
-			// Tilt
-			if (joystick2.getRawButton(8)) {
-				drivetrain.tilt(TILT_RATE);
-			} else if (joystick2.getRawButton(6)) {
-				drivetrain.tilt(-TILT_RATE);
-			} else {
-				drivetrain.tilt(0);
-			}
-
 			double forward = regression(joystick1.getRawAxis(2));
 			double turn = regression(joystick1.getRawAxis(1));
 			if (forward > MAX_DRIVE_SPEED)
@@ -217,8 +122,242 @@ public class RobotMain extends SimpleRobot {
 				turn = MAX_TURN_SPEED;
 
 			drivetrain.drive(forward, turn);
-			
+
 			Timer.delay(.01);
+		}
+	}
+
+	public void dualJoystickControl() {
+		// Take Picture
+		if (joystick1.getRawButton(2)) {
+			tracker.takePicThreaded("TELEOP-" + pic_num + ".png");
+			System.out.println("Taking picture");
+			pic_num++;
+			Timer.delay(.5);
+		}
+
+		// Tracking
+		if (joystick1.getRawButton(1)) {
+			autoTrack();
+		}
+
+		// Lifter
+		if (joystick1.getRawButton(6)) {
+			drivetrain.lift(LIFTER_RATE);
+		} else if (joystick1.getRawButton(8)) {
+			drivetrain.lift(-LIFTER_RATE);
+		} else {
+			drivetrain.lift(0);
+		}
+
+		// Toggle AutoCam
+		if (joystick1.getRawButton(10)) {
+			tracker.toggleAutoPicture();
+			Timer.delay(.5);
+		}
+
+		// Joystick 2
+
+		// Set Tilt to Normal
+		/*
+		 * if (joystick2.getRawButton(7)) { drivetrain.moveTilt(TILT_BASE);
+		 * System.out.println("Setting tilt to normal"); Timer.delay(.5); }
+		 */
+
+		// Shooter
+		if (joystick2.getRawButton(5)) {
+			drivetrain.setShooter1(shooterSpeed1);
+			drivetrain.setShooter2(shooterSpeed2);
+		} else {
+			drivetrain.setShooter1(0.0);
+			drivetrain.setShooter2(0.0);
+		}
+
+		// Launcher
+		if (joystick2.getRawButton(1)) {
+			drivetrain.fire(launchRate, true);
+		} else if (joystick2.getRawButton(4)) {
+			drivetrain.fire(-launchRate, true);
+		} else {
+			drivetrain.fire(0, true);
+		}
+
+		// Launch speed increase
+		if (joystick2.getRawButton(3)) {
+			if (launchRate < 1.0) {
+				launchRate += .05;
+			}
+			System.out.println("Launch speed: " + launchRate);
+			Timer.delay(.5);
+		}
+
+		// Launch speed decrease
+		if (joystick2.getRawButton(2)) {
+			if (launchRate > 0) {
+				launchRate -= .05;
+			}
+			System.out.println("Launch speed: " + launchRate);
+			Timer.delay(.5);
+		}
+
+		// Change speed up
+		if (joystick2.getRawButton(10)) {
+			if (shooterSpeed1 < 1.0) {
+				shooterSpeed1 += .05;
+			}
+
+			if (shooterSpeed2 > -1.0) {
+				shooterSpeed2 -= .05;
+			}
+
+			System.out.println("Shooter speed 1: " + shooterSpeed1
+					+ "  Shooter speed 2: " + shooterSpeed2);
+			Timer.delay(.5);
+		}
+
+		// Change speed down
+		if (joystick2.getRawButton(9)) {
+			if (shooterSpeed1 > 0) {
+				shooterSpeed1 -= .05;
+			}
+
+			if (shooterSpeed2 < 0) {
+				shooterSpeed2 += .05;
+			}
+
+			System.out.println("Shooter speed 1: " + shooterSpeed1
+					+ "  Shooter speed 2: " + shooterSpeed2);
+			Timer.delay(.5);
+		}
+
+		// Tilt
+		if (joystick2.getRawButton(8)) {
+			drivetrain.tilt(TILT_RATE);
+		} else if (joystick2.getRawButton(6)) {
+			drivetrain.tilt(-TILT_RATE);
+		} else {
+			drivetrain.tilt(0);
+		}
+	}
+	
+	public void singleJoystickControl() {
+		// Take Picture
+		if (joystick1.getRawButton(2)) {
+			tracker.takePicThreaded("TELEOP-" + pic_num + ".png");
+			System.out.println("Taking picture");
+			pic_num++;
+			Timer.delay(.5);
+		}
+
+		// Tracking
+		/*
+		if (joystick1.getRawButton(1)) {
+			autoTrack();
+		}
+		*/
+
+		// Lifter
+		if (joystick1.getRawButton(7)) {
+			drivetrain.lift(LIFTER_RATE);
+		} else if (joystick1.getRawButton(6)) {
+			drivetrain.lift(-LIFTER_RATE);
+		} else {
+			drivetrain.lift(0);
+		}
+
+		// Toggle AutoCam
+		/*
+		if (joystick1.getRawButton(10)) {
+			tracker.toggleAutoPicture();
+			Timer.delay(.5);
+		}
+		*/
+
+		// Joystick 2
+
+		// Set Tilt to Normal
+		/*
+		 * if (joystick2.getRawButton(7)) { drivetrain.moveTilt(TILT_BASE);
+		 * System.out.println("Setting tilt to normal"); Timer.delay(.5); }
+		 */
+
+		// Shooter
+		if (joystick1.getRawButton(3)) {
+			drivetrain.setShooter1(shooterSpeed1);
+			drivetrain.setShooter2(shooterSpeed2);
+		} else {
+			drivetrain.setShooter1(0.0);
+			drivetrain.setShooter2(0.0);
+		}
+
+		// Launcher
+		if (joystick1.getRawButton(1)) {
+			drivetrain.fire(launchRate, true);
+		} else if (joystick1.getRawButton(8)) {
+			drivetrain.fire(-launchRate, true);
+		} else {
+			drivetrain.fire(0, true);
+		}
+
+		// Launch speed increase DONT CARE
+		/*
+		if (joystick2.getRawButton(3)) {
+			if (launchRate < 1.0) {
+				launchRate += .05;
+			}
+			System.out.println("Launch speed: " + launchRate);
+			Timer.delay(.5);
+		}
+		*/
+
+		// Launch speed decrease DONT CARE
+		/*
+		if (joystick2.getRawButton(2)) {
+			if (launchRate > 0) {
+				launchRate -= .05;
+			}
+			System.out.println("Launch speed: " + launchRate);
+			Timer.delay(.5);
+		}
+		*/
+
+		// Change speed up
+		if (joystick1.getRawButton(11)) {
+			if (shooterSpeed1 < 1.0) {
+				shooterSpeed1 += .05;
+			}
+
+			if (shooterSpeed2 > -1.0) {
+				shooterSpeed2 -= .05;
+			}
+
+			System.out.println("Shooter speed 1: " + shooterSpeed1
+					+ "  Shooter speed 2: " + shooterSpeed2);
+			Timer.delay(.5);
+		}
+
+		// Change speed down
+		if (joystick1.getRawButton(10)) {
+			if (shooterSpeed1 > 0) {
+				shooterSpeed1 -= .05;
+			}
+
+			if (shooterSpeed2 < 0) {
+				shooterSpeed2 += .05;
+			}
+
+			System.out.println("Shooter speed 1: " + shooterSpeed1
+					+ "  Shooter speed 2: " + shooterSpeed2);
+			Timer.delay(.5);
+		}
+
+		// Tilt
+		if (joystick1.getRawButton(4)) {
+			drivetrain.tilt(TILT_RATE);
+		} else if (joystick1.getRawButton(5)) {
+			drivetrain.tilt(-TILT_RATE);
+		} else {
+			drivetrain.tilt(0);
 		}
 	}
 
@@ -229,7 +368,7 @@ public class RobotMain extends SimpleRobot {
 
 	public void autonomous() {
 		long start_time = System.currentTimeMillis();
-		drivetrain.moveTilt(TILT_BASE);
+		// drivetrain.moveTilt(TILT_BASE);
 		drivetrain.drive(0, 0);
 		if (tracking) {
 
@@ -262,21 +401,22 @@ public class RobotMain extends SimpleRobot {
 
 		drivetrain.setShooter1(shooterSpeed1);
 		drivetrain.setShooter2(shooterSpeed2);
-		if (tracker != null){
+		if (tracker != null) {
 			tracker.takePicThreaded("AUTO-pic1.png");
 			System.out.println("Taking picture");
 		}
 		Timer.delay(3);
-		
-		/* while (isAutonomous() && isEnabled()) {
-			drivetrain.fire(LAUNCH_RATE, true);
-		}*/
-		
+
+		/*
+		 * while (isAutonomous() && isEnabled()) { drivetrain.fire(LAUNCH_RATE,
+		 * true); }
+		 */
+
 		long time = System.currentTimeMillis();
 		while (System.currentTimeMillis() - time < 6000) {
-				drivetrain.fire(LAUNCH_RATE, true);
+			drivetrain.fire(LAUNCH_RATE, true);
 		}
-		
+
 		drivetrain.setShooter1(0);
 		drivetrain.setShooter2(0);
 
@@ -287,32 +427,30 @@ public class RobotMain extends SimpleRobot {
 		 * 
 		 * drivetrain.drive(-.25,0); Timer.delay(3); drivetrain.drive(0,0 );
 		 */
-		
+
 		drivetrain.drive(.5, 0);
 		Timer.delay(2.2);
 		drivetrain.drive(0, -.6);
 		Timer.delay(2);
 		drivetrain.drive(0, 0);
-		
-		System.out.println("Took " + (System.currentTimeMillis() - start_time) / 1000.0 + " seconds.");
-		
+
+		System.out.println("Took " + (System.currentTimeMillis() - start_time)
+				/ 1000.0 + " seconds.");
+
 		/*
 		 * 
-		try {
-			if (tracker != null)
-				tracker.takePic("pic1.png");
-			System.out.println("Taking picture");
-		} catch (Exception e) {
-			System.out.println("Picture Failed");
-		}*/
+		 * try { if (tracker != null) tracker.takePic("pic1.png");
+		 * System.out.println("Taking picture"); } catch (Exception e) {
+		 * System.out.println("Picture Failed"); }
+		 */
 	}
 
 	public void autoTrack() {
-		
+
 		System.out.println("Tracking...");
-		
+
 		while (this.joystick1.getRawButton(1)) {
-			
+
 			ParticleAnalysisReport r = tracker.track(null);
 
 			if (r != null) {
@@ -330,7 +468,7 @@ public class RobotMain extends SimpleRobot {
 
 				System.out.println("Center: " + r.center_mass_x_normalized);
 
-			} else 
+			} else
 				System.out.println("Didnt find anything!");
 
 			Timer.delay(.1);
