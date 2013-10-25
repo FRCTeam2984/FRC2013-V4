@@ -31,8 +31,8 @@ public class Drivetrain {
 	public AnalogChannel tiltPot;
 	private RobotMain rm;
 	
-	public final static int TILT_HIGH = 900;
-	public final static int TILT_LOW = 500;
+	public final static int TILT_HIGH = 1000;
+	public final static int TILT_LOW = 520;
 	
 
 	public Drivetrain(RobotMain robotMain) {

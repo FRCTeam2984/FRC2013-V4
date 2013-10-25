@@ -90,10 +90,8 @@ public class Tracker {
 			i.write(fileName);
 			i.free();
 		} catch (AxisCameraException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (NIVisionException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}
